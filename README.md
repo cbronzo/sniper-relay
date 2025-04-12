@@ -1,9 +1,13 @@
 # Sniper Relay Bot
 
-This is a lightweight webhook listener that relays sniper alerts to Telegram and Discord.
+This Flask app listens for sniper alert signals and sends messages to a Telegram channel.
 
 ## Setup
 
-1. Fill in the `.env` file with your secrets.
-2. Deploy using Render, Railway, or Replit.
-3. Send a POST request with `{ "message": "Your alert text here" }` to the live URL.
+1. Set your environment variables in your Railway project:
+   - TELEGRAM_BOT_TOKEN
+   - TELEGRAM_CHANNEL_ID
+   - BOT_ALIAS (ex: "Sniper Elite")
+   - SNIPER_SECRET (ex: "moonaccess123")
+2. Deploy the app on Railway.
+3. To trigger an alert, send a POST request to the /signal endpoint with a JSON payload.
