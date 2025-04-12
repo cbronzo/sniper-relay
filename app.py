@@ -1,40 +1,41 @@
-from flask import Flask
+from flask import Flask, request, jsonify
 import requests
 import os
 
 app = Flask(__name__)
 
-# Load environment variables
-BOT_ALIAS = os.environ.get("BOT_ALIAS", "Sniper")
-TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
-TELEGRAM_CHANNEL_ID = os.environ.get("TELEGRAM_CHANNEL_ID")
-
-def send_telegram_message(text):
-    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHANNEL_ID:
-        print("❌ Bot token or channel ID missing.")
-        return
-
-    print(f"📤 Sending message to Telegram...\nChannel ID: {TELEGRAM_CHANNEL_ID}\nMessage: {text}")
-
-    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-    payload = {
-        "chat_id": TELEGRAM_CHANNEL_ID,
-        "text": f"{BOT_ALIAS}: {text}"
-    }
-
-    try:
-        response = requests.post(url, json=payload)
-        print(f"✅ Telegram API Response: {response.status_code} - {response.text}")
-    except Exception as e:
-        print(f"❌ Exception while sending Telegram message: {e}")
+# Telegram setup
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+CHANNEL_ID = os.getenv("TELEGRAM_CHANNEL_ID")
 
 @app.route("/")
 def home():
-    print("🌐 / endpoint hit. Running send_telegram_message test.")
-    send_telegram_message("🔥 Connected and working! This is your Sniper bot test.")
-    return "Sniper Relay Bot is active!"
+    return "Sniper relay is active."
 
-# Ensure the app runs on Railway
+@app.route("/signal", methods=["POST"])
+def sniper_signal():
+    try:
+        data = request.json
+        coin = data.get("coin")
+        score = data.get("score")
+        price = data.get("price")
+        note = data.get("note", "")
+
+        if not coin or not score:
+            return jsonify({"error": "Missing data"}), 400
+
+        message = f"🚨 Sniper Alert\n\n🪙 Coin: {coin}\n📈 Score: {score}\n💵 Price: {price}\n📝 {note}"
+
+        telegram_url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+        payload = {
+            "chat_id": CHANNEL_ID,
+            "text": message
+        }
+        response = requests.post(telegram_url, json=payload)
+        return jsonify({"status": "sent", "telegram_response": response.json()})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))  # Railway injects PORT
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=8080)
