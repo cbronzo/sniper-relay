@@ -41,7 +41,7 @@ def sniper_signal():
         payload = {
             "chat_id": CHANNEL_ID,
             "text": message,
-            "parse_mode": "HTML"  # Optional, emojis are fine without this too
+              # Optional, emojis are fine without this too
         }
 
         # Send to Telegram
