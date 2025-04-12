@@ -4,8 +4,10 @@ import os
 
 app = Flask(__name__)
 
+# Environment variables from Railway
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHANNEL_ID = os.getenv("TELEGRAM_CHANNEL_ID")
+BOT_ALIAS = os.getenv("BOT_ALIAS", "Sniper")
 
 @app.route("/")
 def home():
@@ -23,7 +25,13 @@ def sniper_signal():
         if not coin or not roi or not entry:
             return jsonify({"error": "Missing required fields"}), 400
 
-        message = f"🚨 SNIPER ALERT\n\n🪙 Coin: {coin}\n💰 Entry: {entry}\n📈 Target ROI: {roi}\n📝 {note}"
+        message = (
+            f"🚨 {BOT_ALIAS} SNIPER ALERT\n\n"
+            f"🪙 Coin: {coin}\n"
+            f"💰 Entry: {entry}\n"
+            f"📈 Target ROI: {roi}\n"
+            f"📝 {note}"
+        )
 
         telegram_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
         payload = {
@@ -37,7 +45,7 @@ def sniper_signal():
         return jsonify({"status": "sent", "message": message})
 
     except Exception as e:
-        print(f"Error in /signal: {e}")
+        print(f"❌ Error in /signal: {e}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
