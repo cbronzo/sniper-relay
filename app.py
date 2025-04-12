@@ -4,53 +4,23 @@ import requests
 
 app = Flask(__name__)
 
-BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-CHANNEL_ID = os.getenv("TELEGRAM_CHANNEL_ID")
-BOT_ALIAS = os.getenv("BOT_ALIAS", "Sniper Bot")
-SECRET = os.getenv("SNIPER_SECRET", "moonaccess123")  # fallback if not set
-
 @app.route("/")
 def home():
-    return f"{BOT_ALIAS} is live!"
+    return "Mini Bot Live"
 
-@app.route("/signal", methods=["POST"])
-def sniper_signal():
+@app.route("/test", methods=["GET"])
+def test_direct_send():
     try:
-        # ✅ Step 1: Auth
-        key = request.args.get("key")
-        if key != SECRET:
-            return jsonify({"error": "Unauthorized"}), 403
-
-        # ✅ Step 2: Parse payload
-        data = request.json
-        coin = data.get("coin")
-        roi = data.get("roi")
-        entry = data.get("entry")
-        note = data.get("note", "")
-
-        if not coin or not roi or not entry:
-            return jsonify({"error": "Missing coin, roi, or entry"}), 400
-
-        # ✅ Step 3: Compose message
-        message = f"🔥 SNIPER ALERT\n\n🪙 Coin: {coin}\n💰 Entry: {entry}\n🎯 ROI: {roi}\n📝 {note}"
-
-        # ✅ Step 4: POST to Telegram
-        telegram_url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+        telegram_url = f"https://api.telegram.org/bot{os.getenv('TELEGRAM_BOT_TOKEN')}/sendMessage"
         payload = {
-            "chat_id": CHANNEL_ID,
-            "text": message
+            "chat_id": os.getenv("TELEGRAM_CHANNEL_ID"),
+            "text": "🚨 Auto-fire test via Railway direct call"
         }
-
-        response = requests.post(telegram_url, json=payload)
-        response.raise_for_status()
-
-        return jsonify({"status": "sent", "message": message})
-
-    except requests.exceptions.RequestException as te:
-        return jsonify({"error": f"Telegram error: {te}"}), 400
-
+        r = requests.post(telegram_url, json=payload)
+        r.raise_for_status()
+        return jsonify({"status": "sent"})
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": str(e)})
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
