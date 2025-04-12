@@ -4,18 +4,24 @@ import os
 
 app = Flask(__name__)
 
-# Pull variables from Railway environment
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHANNEL_ID = os.getenv("TELEGRAM_CHANNEL_ID")
 BOT_ALIAS = os.getenv("BOT_ALIAS", "Sniper")
+SNIPER_SECRET = os.getenv("SNIPER_SECRET", "none")
 
 @app.route("/")
 def home():
-    return "Sniper Relay is live!"
+    return "Sniper Relay is live and protected!"
 
 @app.route("/signal", methods=["POST"])
 def sniper_signal():
     try:
+        # 🔐 Require secret key as a query param
+        auth_key = request.args.get("key")
+        if auth_key != SNIPER_SECRET:
+            print("❌ Unauthorized attempt to access /signal")
+            return jsonify({"error": "Unauthorized"}), 403
+
         data = request.get_json(force=True)
         print(f"🔥 SIGNAL RECEIVED: {data}")
 
