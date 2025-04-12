@@ -4,8 +4,8 @@ import os
 
 app = Flask(__name__)
 
-# TEMP: Replacing Telegram API with webhook.site for testing
-WEBHOOK_TEST_URL = "https://webhook.site/403185d7-da47-45cf-8135-0522a7e368c6"
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
+TELEGRAM_CHANNEL_ID = os.environ.get("TELEGRAM_CHANNEL_ID")
 
 @app.route("/")
 def home():
@@ -23,15 +23,22 @@ def sniper_signal():
         if not coin or not roi or not entry:
             return jsonify({"error": "Missing required fields"}), 400
 
-        message = f"🚨 SNIPER ALERT\n\n🪙 Coin: {coin}\n💰 Entry: {entry}\n📈 Target ROI: {roi}\n📝 {note}"
+        message = (
+            f"🚨 SNIPER ALERT\n\n"
+            f"🪙 Coin: {coin}\n"
+            f"💰 Entry: {entry}\n"
+            f"📈 Target ROI: {roi}\n"
+            f"📝 {note}"
+        )
 
-        # Send message to webhook.site for now
+        telegram_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
         payload = {
-            "message": message
+            "chat_id": TELEGRAM_CHANNEL_ID,
+            "text": message
         }
 
-        response = requests.post(WEBHOOK_TEST_URL, json=payload)
-        print(f"Webhook.site response: {response.status_code} - {response.text}")
+        response = requests.post(telegram_url, json=payload)
+        print(f"Telegram API Response: {response.status_code} - {response.text}")
 
         return jsonify({"status": "sent", "message": message})
 
