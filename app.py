@@ -1,56 +1,49 @@
 from flask import Flask, request, jsonify
-import requests
 import os
+import requests
 
 app = Flask(__name__)
 
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-TELEGRAM_CHANNEL_ID = os.getenv("TELEGRAM_CHANNEL_ID")
-BOT_ALIAS = os.getenv("BOT_ALIAS", "Sniper")
-SNIPER_SECRET = os.getenv("SNIPER_SECRET", "none")
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+CHANNEL_ID = os.getenv("TELEGRAM_CHANNEL_ID")
+BOT_ALIAS = os.getenv("BOT_ALIAS", "Sniper Bot")
+SECRET = os.getenv("SNIPER_SECRET")
 
 @app.route("/")
 def home():
-    return "Sniper Relay is live and protected!"
+    return f"{BOT_ALIAS} is live!"
 
 @app.route("/signal", methods=["POST"])
 def sniper_signal():
     try:
-        # 🔐 Require secret key as a query param
-        auth_key = request.args.get("key")
-        if auth_key != SNIPER_SECRET:
-            print("❌ Unauthorized attempt to access /signal")
+        # AUTH
+        key = request.args.get("key")
+        if key != SECRET:
             return jsonify({"error": "Unauthorized"}), 403
 
-        data = request.get_json(force=True)
-        print(f"🔥 SIGNAL RECEIVED: {data}")
-
-        coin = data.get("coin", "UNKNOWN")
-        roi = data.get("roi", "N/A")
-        entry = data.get("entry", "N/A")
+        data = request.json
+        coin = data.get("coin")
+        roi = data.get("roi")
+        entry = data.get("entry")
         note = data.get("note", "")
 
-        message = (
-            f"🚨 {BOT_ALIAS} SNIPER ALERT\n\n"
-            f"🪙 Coin: {coin}\n"
-            f"💰 Entry: {entry}\n"
-            f"📈 Target ROI: {roi}\n"
-            f"📝 {note}"
-        )
+        if not coin or not roi or not entry:
+            return jsonify({"error": "Missing fields"}), 400
 
-        telegram_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+        message = f"🔥 SNIPER ALERT\n\n🪙 Coin: {coin}\n💰 Entry: {entry}\n🎯 Target ROI: {roi}\n📝 {note}"
+
+        telegram_url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
         payload = {
-            "chat_id": TELEGRAM_CHANNEL_ID,
+            "chat_id": CHANNEL_ID,
             "text": message
         }
 
         response = requests.post(telegram_url, json=payload)
-        print(f"📬 Telegram API Response: {response.status_code} - {response.text}")
+        response.raise_for_status()
 
         return jsonify({"status": "sent", "message": message})
 
     except Exception as e:
-        print(f"❌ Error in /signal: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
