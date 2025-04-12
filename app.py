@@ -4,7 +4,7 @@ import os
 
 app = Flask(__name__)
 
-# Environment variables from Railway
+# Pull variables from Railway environment
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHANNEL_ID = os.getenv("TELEGRAM_CHANNEL_ID")
 BOT_ALIAS = os.getenv("BOT_ALIAS", "Sniper")
@@ -16,15 +16,13 @@ def home():
 @app.route("/signal", methods=["POST"])
 def sniper_signal():
     try:
-        data = request.json
-print(f"🔥 SIGNAL RECEIVED: {data}")
-        coin = data.get("coin")
-        roi = data.get("roi")
-        entry = data.get("entry")
-        note = data.get("note", "")
+        data = request.get_json(force=True)
+        print(f"🔥 SIGNAL RECEIVED: {data}")
 
-        if not coin or not roi or not entry:
-            return jsonify({"error": "Missing required fields"}), 400
+        coin = data.get("coin", "UNKNOWN")
+        roi = data.get("roi", "N/A")
+        entry = data.get("entry", "N/A")
+        note = data.get("note", "")
 
         message = (
             f"🚨 {BOT_ALIAS} SNIPER ALERT\n\n"
@@ -46,7 +44,7 @@ print(f"🔥 SIGNAL RECEIVED: {data}")
         return jsonify({"status": "sent", "message": message})
 
     except Exception as e:
-        print(f"❌ Error in /signal: {e}")
+        print(f"❌ Error in /signal: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
