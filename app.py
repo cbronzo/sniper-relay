@@ -46,6 +46,6 @@ def send_alert():
         print(f"❌ Exception occurred: {e}")
         return jsonify({"status": "error", "error": str(e)}), 500
 
-# 🚀 Required for Railway: run on 0.0.0.0:8000
+# Only run locally (not on Railway)
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000, debug=True)
+    app.run(debug=True)
