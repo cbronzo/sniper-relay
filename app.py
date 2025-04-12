@@ -1,41 +1,35 @@
-from flask import Flask, request, jsonify
-import requests
+from flask import Flask, request
 import os
+import requests
 
 app = Flask(__name__)
 
-# Telegram setup
-BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-CHANNEL_ID = os.getenv("TELEGRAM_CHANNEL_ID")
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+TELEGRAM_CHANNEL_ID = os.getenv("TELEGRAM_CHANNEL_ID")
+BOT_ALIAS = os.getenv("BOT_ALIAS", "Sniper Bot")
 
 @app.route("/")
 def home():
-    return "Sniper relay is active."
+    return "Sniper Bot is active!"
 
 @app.route("/signal", methods=["POST"])
-def sniper_signal():
-    try:
-        data = request.json
-        coin = data.get("coin")
-        score = data.get("score")
-        price = data.get("price")
-        note = data.get("note", "")
+def send_telegram_message():
+    data = request.get_json()
+    coin_name = data.get("coin", "Unknown")
+    roi = data.get("roi", "N/A")
+    entry_price = data.get("entry", "N/A")
 
-        if not coin or not score:
-            return jsonify({"error": "Missing data"}), 400
+    message = f"🚨 {BOT_ALIAS} ALERT 🚨\nCoin: {coin_name}\nROI: {roi}\nEntry: {entry_price}"
+    send_to_telegram(message)
+    return {"status": "ok"}
 
-        message = f"🚨 Sniper Alert\n\n🪙 Coin: {coin}\n📈 Score: {score}\n💵 Price: {price}\n📝 {note}"
-
-        telegram_url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-        payload = {
-            "chat_id": CHANNEL_ID,
-            "text": message
-        }
-        response = requests.post(telegram_url, json=payload)
-        return jsonify({"status": "sent", "telegram_response": response.json()})
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+def send_to_telegram(message):
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    payload = {
+        "chat_id": TELEGRAM_CHANNEL_ID,
+        "text": message
+    }
+    requests.post(url, json=payload)
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
+    app.run(debug=False, host="0.0.0.0", port=8080)
