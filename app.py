@@ -4,12 +4,12 @@ import os
 
 app = Flask(__name__)
 
-TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
-TELEGRAM_CHANNEL_ID = os.environ.get("TELEGRAM_CHANNEL_ID")
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+TELEGRAM_CHANNEL_ID = os.getenv("TELEGRAM_CHANNEL_ID")
 
 @app.route("/")
 def home():
-    return "Sniper Relay is active!"
+    return "Sniper Relay is live!"
 
 @app.route("/signal", methods=["POST"])
 def sniper_signal():
@@ -23,13 +23,7 @@ def sniper_signal():
         if not coin or not roi or not entry:
             return jsonify({"error": "Missing required fields"}), 400
 
-        message = (
-            f"🚨 SNIPER ALERT\n\n"
-            f"🪙 Coin: {coin}\n"
-            f"💰 Entry: {entry}\n"
-            f"📈 Target ROI: {roi}\n"
-            f"📝 {note}"
-        )
+        message = f"🚨 SNIPER ALERT\n\n🪙 Coin: {coin}\n💰 Entry: {entry}\n📈 Target ROI: {roi}\n📝 {note}"
 
         telegram_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
         payload = {
@@ -38,7 +32,7 @@ def sniper_signal():
         }
 
         response = requests.post(telegram_url, json=payload)
-        print(f"Telegram API Response: {response.status_code} - {response.text}")
+        print(f"📬 Telegram API Response: {response.status_code} - {response.text}")
 
         return jsonify({"status": "sent", "message": message})
 
