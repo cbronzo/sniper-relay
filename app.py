@@ -3,23 +3,23 @@ import requests
 
 app = Flask(__name__)
 
-# 🔐 Your hardcoded secrets
+# 🔐 Hardcoded secrets (yours)
 BOT_TOKEN = "7876168717:AAEZG9J10w9HjyHLYAF4F25REgNS01KLZcc"
-CHAT_ID = "-1002502682234"  # This is your channel ID
+CHAT_ID = "-1002502682234"
 SNIPER_SECRET = "moonaccess123"
 
-# ✅ Test route to confirm deployment
+# ✅ Test route to confirm app is running
 @app.route("/test", methods=["GET"])
 def test_route():
     return "✅ App is live and responding"
 
-# 📤 Main endpoint to send sniper alerts
+# 📤 Main route to receive and forward sniper alerts
 @app.route("/send", methods=["POST"])
 def send_alert():
     try:
         data = request.get_json()
 
-        # 🔐 Optional: verify sniper secret
+        # 🔒 Optional secret key verification
         secret = data.get("secret")
         if secret != SNIPER_SECRET:
             return jsonify({"error": "Unauthorized"}), 403
@@ -46,6 +46,6 @@ def send_alert():
         print(f"❌ Exception occurred: {e}")
         return jsonify({"status": "error", "error": str(e)}), 500
 
-# Optional for local testing
+# 🚀 Required for Railway: run on 0.0.0.0:8000
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=8000, debug=True)
