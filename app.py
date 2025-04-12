@@ -4,7 +4,7 @@ import os
 
 app = Flask(__name__)
 
-# Load from Railway environment
+# Load environment variables
 BOT_ALIAS = os.environ.get("BOT_ALIAS", "Sniper")
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHANNEL_ID = os.environ.get("TELEGRAM_CHANNEL_ID")
@@ -31,4 +31,10 @@ def send_telegram_message(text):
 @app.route("/")
 def home():
     print("🌐 / endpoint hit. Running send_telegram_message test.")
-    send_telegram_message
+    send_telegram_message("🔥 Connected and working! This is your Sniper bot test.")
+    return "Sniper Relay Bot is active!"
+
+# Ensure the app runs on Railway
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))  # Railway injects PORT
+    app.run(host="0.0.0.0", port=port)
