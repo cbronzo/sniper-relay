@@ -26,3 +26,5 @@ def index():
 def fire():
     send_telegram_message("🔥 TEST ALERT: Sniper Bot Connected & Active!")
     return "Message sent!"
+
+app.run(host="0.0.0.0", port=5000)
