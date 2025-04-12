@@ -17,6 +17,7 @@ def home():
 def sniper_signal():
     try:
         data = request.json
+print(f"🔥 SIGNAL RECEIVED: {data}")
         coin = data.get("coin")
         roi = data.get("roi")
         entry = data.get("entry")
