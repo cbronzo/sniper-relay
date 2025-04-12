@@ -11,7 +11,7 @@ SNIPER_SECRET = "moonaccess123"
 # ✅ Test route to confirm app is running
 @app.route("/test", methods=["GET"])
 def test_route():
-    return "✅ App is live and responding"
+    return jsonify({"status": "✅ App is live and working!"}), 200
 
 # 📤 Main route to receive and forward sniper alerts
 @app.route("/send", methods=["POST"])
