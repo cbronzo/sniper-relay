@@ -3,20 +3,27 @@ import requests
 
 app = Flask(__name__)
 
-# 🔐 Replace these with your real bot token + chat ID
-BOT_TOKEN = "YOUR_TELEGRAM_BOT_TOKEN"
-CHAT_ID = "YOUR_CHAT_ID"  # for groups it might be like -1001234567890
+# 🔐 Your hardcoded secrets
+BOT_TOKEN = "7876168717:AAEZG9J10w9HjyHLYAF4F25REgNS01KLZcc"
+CHAT_ID = "-1002502682234"  # This is your channel ID
+SNIPER_SECRET = "moonaccess123"
 
-# ✅ Test route to verify app is up
+# ✅ Test route to confirm deployment
 @app.route("/test", methods=["GET"])
 def test_route():
     return "✅ App is live and responding"
 
-# 📤 Main route to send a Telegram message
+# 📤 Main endpoint to send sniper alerts
 @app.route("/send", methods=["POST"])
 def send_alert():
     try:
         data = request.get_json()
+
+        # 🔐 Optional: verify sniper secret
+        secret = data.get("secret")
+        if secret != SNIPER_SECRET:
+            return jsonify({"error": "Unauthorized"}), 403
+
         message = data.get("message", "⚠️ Default test message")
 
         print("🔄 Attempting to send Telegram message...")
@@ -39,6 +46,6 @@ def send_alert():
         print(f"❌ Exception occurred: {e}")
         return jsonify({"status": "error", "error": str(e)}), 500
 
-# 🔁 Needed to run locally (won’t be used by Railway, but safe to leave in)
+# Optional for local testing
 if __name__ == "__main__":
     app.run(debug=True)
