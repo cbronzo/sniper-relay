@@ -3,40 +3,42 @@ import requests
 
 app = Flask(__name__)
 
-# 🔒 Hardcoded values
-BOT_TOKEN = "7876168717:AAEZG9J10w9HjyHLYAF4F25REgNSO1KLZcc"
-CHANNEL_ID = "-1002502682234"
+# 🔐 Replace these with your real bot token + chat ID
+BOT_TOKEN = "YOUR_TELEGRAM_BOT_TOKEN"
+CHAT_ID = "YOUR_CHAT_ID"  # for groups it might be like -1001234567890
 
-@app.route("/")
-def home():
-    return "Sniper Relay is live and hardcoded."
+# ✅ Test route to verify app is up
+@app.route("/test", methods=["GET"])
+def test_route():
+    return "✅ App is live and responding"
 
-@app.route("/signal", methods=["POST"])
-def sniper_signal():
+# 📤 Main route to send a Telegram message
+@app.route("/send", methods=["POST"])
+def send_alert():
     try:
-        data = request.json
-        coin = data.get("coin", "Unknown")
-        roi = data.get("roi", "???")
-        entry = data.get("entry", "???")
-        note = data.get("note", "")
+        data = request.get_json()
+        message = data.get("message", "⚠️ Default test message")
 
-        message = f"🚨 SNIPER ALERT\n\n🪙 Coin: {coin}\n💰 Entry: {entry}\n📈 ROI Target: {roi}\n📝 {note}"
-
-        telegram_url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+        print("🔄 Attempting to send Telegram message...")
+        url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
         payload = {
-            "chat_id": CHANNEL_ID,
+            "chat_id": CHAT_ID,
             "text": message
         }
 
-        response = requests.post(telegram_url, json=payload)
-        response.raise_for_status()
-        return jsonify({"status": "sent", "message": message})
+        response = requests.post(url, data=payload)
+        print(f"🔧 Status Code: {response.status_code}")
+        print(f"🧾 Response Text: {response.text}")
 
-    except requests.exceptions.RequestException as e:
-        return jsonify({"error": f"Telegram error: {e}"}), 500
+        if response.status_code == 200:
+            return jsonify({"status": "success"}), 200
+        else:
+            return jsonify({"status": "fail", "response": response.text}), 500
 
-    except Exception as ex:
-        return jsonify({"error": str(ex)}), 500
+    except Exception as e:
+        print(f"❌ Exception occurred: {e}")
+        return jsonify({"status": "error", "error": str(e)}), 500
 
+# 🔁 Needed to run locally (won’t be used by Railway, but safe to leave in)
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
+    app.run(debug=True)
