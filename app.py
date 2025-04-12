@@ -4,11 +4,10 @@ import requests
 
 app = Flask(__name__)
 
-# Load environment variables
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHANNEL_ID = os.getenv("TELEGRAM_CHANNEL_ID")
 BOT_ALIAS = os.getenv("BOT_ALIAS", "Sniper Bot")
-SECRET = os.getenv("SNIPER_SECRET")
+SECRET = os.getenv("SNIPER_SECRET", "moonaccess123")  # fallback if not set
 
 @app.route("/")
 def home():
@@ -17,11 +16,12 @@ def home():
 @app.route("/signal", methods=["POST"])
 def sniper_signal():
     try:
-        # Authentication check
+        # ✅ Step 1: Auth
         key = request.args.get("key")
         if key != SECRET:
             return jsonify({"error": "Unauthorized"}), 403
 
+        # ✅ Step 2: Parse payload
         data = request.json
         coin = data.get("coin")
         roi = data.get("roi")
@@ -29,29 +29,26 @@ def sniper_signal():
         note = data.get("note", "")
 
         if not coin or not roi or not entry:
-            return jsonify({"error": "Missing fields"}), 400
+            return jsonify({"error": "Missing coin, roi, or entry"}), 400
 
-        # Format message
-        message = f"🚨 SNIPER ALERT\n\n🪙 Coin: {coin}\n💰 Entry: {entry}\n🎯 Target ROI: {roi}\n📝 {note}"
+        # ✅ Step 3: Compose message
+        message = f"🔥 SNIPER ALERT\n\n🪙 Coin: {coin}\n💰 Entry: {entry}\n🎯 ROI: {roi}\n📝 {note}"
 
-        # Telegram sendMessage URL
+        # ✅ Step 4: POST to Telegram
         telegram_url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-
-        # Payload with safe encoding and parse_mode
         payload = {
             "chat_id": CHANNEL_ID,
-            "text": message,
-              # Optional, emojis are fine without this too
+            "text": message
         }
 
-        # Send to Telegram
         response = requests.post(telegram_url, json=payload)
         response.raise_for_status()
 
         return jsonify({"status": "sent", "message": message})
 
-    except requests.exceptions.RequestException as req_err:
-        return jsonify({"error": f"Telegram error: {req_err}"}), 500
+    except requests.exceptions.RequestException as te:
+        return jsonify({"error": f"Telegram error: {te}"}), 400
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
